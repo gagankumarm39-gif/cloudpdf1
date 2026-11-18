@@ -1,0 +1,29 @@
+[Unit]
+Description=Cloud-Based PDF Generation System (Gunicorn WSGI)
+After=network.target remote-fs.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=ec2-user
+Group=ec2-user
+WorkingDirectory=/opt/cloudpdfgenerator
+Environment="PATH=/opt/cloudpdfgenerator/venv/bin:/usr/local/bin:/usr/bin:/bin"
+EnvironmentFile=/etc/cloudpdf/cloudpdf.env
+ExecStart=/opt/cloudpdfgenerator/venv/bin/gunicorn \
+    --config /opt/cloudpdfgenerator/gunicorn_config.py \
+    app:app
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=30
+PrivateTmp=true
+Restart=always
+RestartSec=5
+
+# Hardening / Security options
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target

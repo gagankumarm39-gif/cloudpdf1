@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudPDF Studio - Cloud-Based PDF Generation System</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for modern icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="#" class="brand-logo">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-title">CloudPDF</span>
+                    <span class="brand-tag">AWS Cloud Platform</span>
+                </div>
+            </a>
+            <nav class="nav-links">
+                <a href="#dashboard" class="nav-link active"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="#create-section" class="nav-link"><i class="fa-solid fa-pen-nib"></i> Create Document</a>
+                <a href="#templates-section" class="nav-link"><i class="fa-solid fa-layer-group"></i> Templates</a>
+                <a href="#history-section" class="nav-link"><i class="fa-solid fa-clock-rotate-left"></i> History</a>
+                <a href="#cloud-status" class="nav-link"><i class="fa-solid fa-cloud"></i> Cloud Status</a>
+            </nav>
+            <div class="nav-actions">
+                {% if current_user.is_authenticated %}
+                <div class="user-pill">
+                    <i class="fa-solid fa-circle-user"></i>
+                    <span class="user-name">{{ current_user.name }}</span>
+                </div>
+                <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm" title="Sign Out">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-secondary btn-sm">
+                    <i class="fa-solid fa-right-to-bracket"></i> Login
+                </a>
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-user-plus"></i> Register
+                </a>
+                {% endif %}
+                <a href="#create-section" class="btn btn-primary btn-sm">
+                    <i class="fa-solid fa-plus"></i> New PDF
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- Hero / Welcome Section -->
+        <section id="dashboard" class="hero-section">
+            <div class="container hero-grid">
+                <div class="hero-text">
+                    <div class="badge-pill">
+                        <span class="status-dot"></span> Cloud Computing Project • Milestone 1
+                    </div>
+                    <h1 class="hero-title">
+                        High-Performance Cloud-Native <span class="gradient-text">PDF Generation</span>
+                    </h1>
+                    <p class="hero-desc">
+                        Seamlessly design, render, and orchestrate document publishing backed by AWS S3,
+                        Amazon DynamoDB, and ReportLab high-precision engine. Generate instantly and retrieve anywhere.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="#create-section" class="btn btn-primary btn-lg">
+                            <i class="fa-solid fa-file-circle-plus"></i> Generate PDF Now
+                        </a>
+                        <a href="#templates-section" class="btn btn-secondary btn-lg">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Browse Templates
+                        </a>
+                    </div>
+                </div>
+
+                <div class="hero-stat-card">
+                    <div class="stat-card-header">
+                        <h3><i class="fa-solid fa-microchip"></i> Cloud Architecture Hub</h3>
+                        <span class="badge-active">Online</span>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <div class="metric-icon blue"><i class="fa-solid fa-file-pdf"></i></div>
+                            <div>
+                                <span class="metric-label">Total Documents</span>
+                                <h4 class="metric-val" id="totalGeneratedVal">{{ metrics.total_generated }}</h4>
+                            </div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-icon cyan"><i class="fa-brands fa-aws"></i></div>
+                            <div>
+                                <span class="metric-label">Cloud Storage</span>
+                                <h4 class="metric-val text-truncate">{{ metrics.cloud_storage_status }}</h4>
+                            </div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-icon purple"><i class="fa-solid fa-database"></i></div>
+                            <div>
+                                <span class="metric-label">Storage Consumed</span>
+                                <h4 class="metric-val">{{ metrics.storage_used }}</h4>
+                            </div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-icon amber"><i class="fa-solid fa-globe"></i></div>
+                            <div>
+                                <span class="metric-label">Region</span>
+                                <h4 class="metric-val">{{ metrics.active_region }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pipeline-progress">
+                        <div class="pipeline-step active">
+                            <i class="fa-solid fa-pen"></i> Form Input
+                        </div>
+                        <i class="fa-solid fa-chevron-right arrow"></i>
+                        <div class="pipeline-step active">
+                            <i class="fa-solid fa-gears"></i> ReportLab
+                        </div>
+                        <i class="fa-solid fa-chevron-right arrow"></i>
+                        <div class="pipeline-step">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Amazon S3
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Document Templates Section -->
+        <section id="templates-section" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <div>
+                        <span class="section-tag">Quick Start</span>
+                        <h2 class="section-title">Pre-configured Document Templates</h2>
+                    </div>
+                    <p class="section-subtext">Click any template to auto-populate the PDF generation form with tailored samples.</p>
+                </div>
+
+                <div class="templates-grid">
+                    <div class="template-card" onclick="loadTemplate('academic')">
+                        <div class="template-header">
+                            <div class="template-icon blue"><i class="fa-solid fa-graduation-cap"></i></div>
+                            <span class="badge-mini">Academic</span>
+                        </div>
+                        <h3>College Project Report</h3>
+                        <p>Complete structure for semester evaluations, project summaries, and student details.</p>
+                        <button type="button" class="btn-text">Use Template <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+
+                    <div class="template-card" onclick="loadTemplate('technical')">
+                        <div class="template-header">
+                            <div class="template-icon purple"><i class="fa-solid fa-server"></i></div>
+                            <span class="badge-mini">Architecture</span>
+                        </div>
+                        <h3>AWS Architecture Blueprint</h3>
+                        <p>Pre-populated with S3, EC2, IAM and DynamoDB specifications and diagram notes.</p>
+                        <button type="button" class="btn-text">Use Template <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+
+                    <div class="template-card" onclick="loadTemplate('business')">
+                        <div class="template-header">
+                            <div class="template-icon green"><i class="fa-solid fa-briefcase"></i></div>
+                            <span class="badge-mini">Executive</span>
+                        </div>
+                        <h3>Executive Summary Brief</h3>
+                        <p>Executive report layout with objective, key results, milestones, and deliverable highlights.</p>
+                        <button type="button" class="btn-text">Use Template <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Document Generation Form Section -->
+        <section id="create-section" class="section bg-light">
+            <div class="container">
+                <div class="section-header text-center">
+                    <span class="section-tag">Studio Editor</span>
+                    <h2 class="section-title">Document Generation Studio</h2>
+                    <p class="section-subtext">Enter your document details below. The UI prepares the payload ready for rendering.</p>
+                </div>
+
+                <div class="form-container">
+                    <form id="pdfGenerationForm" onsubmit="handleGeneratePDF(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="docTitle"><i class="fa-solid fa-heading"></i> Document Title <span class="required">*</span></label>
+                                <input type="text" id="docTitle" name="title" class="form-control" placeholder="e.g. Distributed Computing & AWS Lab Report" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="authorName"><i class="fa-solid fa-user-pen"></i> Author / Creator Name <span class="required">*</span></label>
+                                <input type="text" id="authorName" name="author" class="form-control" placeholder="e.g. Kavya M" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="docDescription"><i class="fa-solid fa-align-left"></i> Document Description / Abstract</label>
+                            <input type="text" id="docDescription" name="description" class="form-control" placeholder="Brief summary of document goals, audience, or cloud storage metadata...">
+                        </div>
+
+                        <div class="form-group">
+                            <div class="label-row">
+                                <label for="docContent"><i class="fa-solid fa-file-lines"></i> Main Content <span class="required">*</span></label>
+                                <span class="char-count" id="charCount">0 characters</span>
+                            </div>
+                            <textarea id="docContent" name="content" class="form-control textarea" rows="9" placeholder="Enter the complete text content of your document here. Supports paragraph formatting..." required></textarea>
+                        </div>
+
+                        <div class="form-footer">
+                            <div class="action-info">
+                                <i class="fa-solid fa-shield-halved"></i> Ready for ReportLab pipeline processing
+                            </div>
+                            <div class="button-group">
+                                <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                                    <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+                                </button>
+                                <button type="submit" id="submitBtn" class="btn btn-primary">
+                                    <i class="fa-solid fa-file-pdf"></i> Generate PDF
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Preview / Status Feedback Banner (Interactive for Milestone 1) -->
+                    <div id="statusNotification" class="status-banner d-none">
+                        <div class="status-banner-content">
+                            <div class="spinner d-none" id="statusSpinner"></div>
+                            <i class="fa-solid fa-circle-check success-icon" id="statusSuccessIcon"></i>
+                            <div>
+                                <h4 id="statusHeading">Processing Document</h4>
+                                <p id="statusMsg">Validating document payload and parameters...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PDF History & Cloud Storage Overview Section -->
+        <section id="history-section" class="section">
+            <div class="container">
+                <div class="history-grid">
+                    <!-- Recent Documents Table & Management -->
+                    <div class="table-card">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Document History & Storage</h3>
+                                <p class="card-subtitle">Manage, preview, and download compiled cloud PDFs</p>
+                            </div>
+                            <span class="badge-pill-soft" id="docCountBadge">{{ documents|length }} items</span>
+                        </div>
+
+                        <!-- Search & Sorting Toolbar -->
+                        <div class="table-toolbar">
+                            <div class="search-box">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" id="docSearchInput" placeholder="Search by title, author, or Doc ID..." oninput="debounceSearch()">
+                                <button type="button" id="clearSearchBtn" class="btn-clear-search d-none" onclick="clearSearch()" title="Clear search">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                            <div class="sort-box">
+                                <label for="docSortSelect"><i class="fa-solid fa-arrow-down-short-wide"></i> Sort:</label>
+                                <select id="docSortSelect" onchange="applySorting()">
+                                    <option value="date-desc">Newest First</option>
+                                    <option value="date-asc">Oldest First</option>
+                                    <option value="title-asc">Title (A-Z)</option>
+                                    <option value="title-desc">Title (Z-A)</option>
+                                    <option value="size-desc">Largest Size</option>
+                                    <option value="size-asc">Smallest Size</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="data-table" id="documentsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Doc ID</th>
+                                        <th>Title</th>
+                                        <th>Author</th>
+                                        <th>Timestamp</th>
+                                        <th>Size</th>
+                                        <th>Status</th>
+                                        <th style="text-align: center;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for doc in documents %}
+                                    <tr id="row-{{ doc.id }}">
+                                        <td><span class="doc-code">{{ doc.id }}</span></td>
+                                        <td class="font-medium">{{ doc.title }}</td>
+                                        <td>{{ doc.author }}</td>
+                                        <td class="text-muted">{{ doc.created_at }}</td>
+                                        <td>{{ doc.size }}</td>
+                                        <td>
+                                            <span class="status-pill status-ready">
+                                                <i class="fa-solid fa-check"></i> {{ doc.status }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="table-actions">
+                                                <button class="action-btn btn-action-preview" title="Preview PDF in Browser" onclick="openPdfPreview('{{ doc.id }}', '{{ doc.title|escape }}')">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                </button>
+                                                <button class="action-btn btn-action-download" title="Download Document" onclick="triggerDownloadById('{{ doc.id }}')">
+                                                    <i class="fa-solid fa-download"></i>
+                                                </button>
+                                                <button class="action-btn btn-action-delete" title="Delete Document" onclick="promptDeleteDocument('{{ doc.id }}', '{{ doc.title|escape }}')">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <!-- Empty State Container -->
+                            <div id="tableEmptyState" class="empty-state {% if documents|length > 0 %}d-none{% endif %}">
+                                <i class="fa-regular fa-folder-open empty-icon"></i>
+                                <h4>No Documents Found</h4>
+                                <p id="emptyStateMsg">No documents match your query or history is empty.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cloud Storage & Architecture Status Card -->
+                    <div id="cloud-status" class="cloud-status-card">
+                        <div class="card-header">
+                            <h3 class="card-title"><i class="fa-brands fa-aws"></i> Cloud Services Status</h3>
+                        </div>
+
+                        <div class="cloud-items">
+                            <div class="cloud-item">
+                                <div class="cloud-item-icon s3"><i class="fa-solid fa-box-archive"></i></div>
+                                <div class="cloud-item-info">
+                                    <div class="cloud-item-top">
+                                        <h4>{% if metrics.supabase_configured %}Supabase Storage{% else %}Cloud Storage (Supabase / S3){% endif %}</h4>
+                                        <span class="status-badge-ready">{% if metrics.supabase_configured %}Active (Supabase Connected){% elif metrics.s3_configured %}Active (S3 Connected){% else %}Ready (Local Fallback){% endif %}</span>
+                                    </div>
+                                    <p class="cloud-item-detail">Object Storage for binary PDF archives</p>
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar-fill" style="width: 28%"></div>
+                                    </div>
+                                    <span class="caption">Bucket: <strong>{% if metrics.supabase_configured %}{{ metrics.supabase_bucket }}{% else %}{{ metrics.s3_bucket }}{% endif %}</strong> ({{ metrics.storage_used }} tracked)</span>
+                                </div>
+                            </div>
+
+                            <div class="cloud-item">
+                                <div class="cloud-item-icon dynamodb"><i class="fa-solid fa-database"></i></div>
+                                <div class="cloud-item-info">
+                                    <div class="cloud-item-top">
+                                        <h4>Amazon DynamoDB</h4>
+                                        <span class="status-badge-ready">{% if metrics.dynamodb_configured %}Active (Connected){% else %}Ready (Local Cache){% endif %}</span>
+                                    </div>
+                                    <p class="cloud-item-detail">NoSQL metadata table for document indexing</p>
+                                    <span class="caption">Table: <strong>{{ metrics.dynamodb_table }}</strong> (PK: doc_id)</span>
+                                </div>
+                            </div>
+
+                            <div class="cloud-item">
+                                <div class="cloud-item-icon ec2"><i class="fa-solid fa-server"></i></div>
+                                <div class="cloud-item-info">
+                                    <div class="cloud-item-top">
+                                        <h4>Amazon EC2 & IAM</h4>
+                                        <span class="status-badge-ready">Configured</span>
+                                    </div>
+                                    <p class="cloud-item-detail">Compute instance & Role-based security</p>
+                                    <span class="caption">Health Check endpoint: /api/health</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="system-health-box">
+                            <div class="health-header">
+                                <span><i class="fa-solid fa-heart-pulse"></i> EC2 Health Check</span>
+                                <button class="btn-check-api" onclick="checkApiHealth()">Test API</button>
+                            </div>
+                            <div id="apiHealthResult" class="health-result">
+                                Click "Test API" to ping <code>/api/health</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="container footer-content">
+            <div class="footer-col brand-col">
+                <div class="footer-logo">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>CloudPDF Studio</span>
+                </div>
+                <p>Cloud-Based PDF Generation & Storage System for modern academic and enterprise workflows.</p>
+                <p class="copyright">© 2026 Cloud Computing Project. All rights reserved.</p>
+            </div>
+
+            <div class="footer-col">
+                <h4>System Architecture</h4>
+                <ul>
+                    <li><i class="fa-solid fa-angle-right"></i> Flask & Python Backend</li>
+                    <li><i class="fa-solid fa-angle-right"></i> ReportLab PDF Engine</li>
+                    <li><i class="fa-solid fa-angle-right"></i> Amazon Simple Storage Service (S3)</li>
+                    <li><i class="fa-solid fa-angle-right"></i> Amazon DynamoDB NoSQL</li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Milestone Roadmap</h4>
+                <ul>
+                    <li><span class="badge-done">M1 Done</span> Foundation & UI</li>
+                    <li><span class="badge-done">M2 Done</span> ReportLab Engine</li>
+                    <li><span class="badge-done">M3 Done</span> Preview & Management</li>
+                    <li><span class="badge-done">M4 Done</span> Amazon S3 Storage</li>
+                    <li><span class="badge-done">M5 Done</span> Amazon DynamoDB</li>
+                    <li><span class="badge-pending">M6 Next</span> EC2 Production & IAM</li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Project Info</h4>
+                <p>Designed and built for Cloud Computing semester coursework. Local development mode active.</p>
+                <div class="tech-tags">
+                    <span>Python 3.12</span>
+                    <span>Flask 3.0</span>
+                    <span>AWS</span>
+                    <span>CSS3</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive PDF Preview Modal -->
+    <div id="pdfPreviewModal" class="modal-backdrop d-none" onclick="handleModalBackdropClick(event)">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title-area">
+                    <div class="modal-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                    <div>
+                        <h3 id="previewModalTitle">Document Preview</h3>
+                        <span id="previewModalDocId" class="modal-sub">DOC-ID</span>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary btn-sm" id="modalDownloadBtn" onclick="downloadCurrentPreview()">
+                        <i class="fa-solid fa-download"></i> Download PDF
+                    </button>
+                    <button class="btn-close-modal" onclick="closePdfPreview()" title="Close Viewer">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div id="previewLoadingSpinner" class="preview-spinner-container">
+                    <div class="spinner"></div>
+                    <p>Loading document from storage...</p>
+                </div>
+                <iframe id="pdfPreviewFrame" src="" class="pdf-viewer-frame d-none" onload="handlePdfIframeLoaded()"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="modal-backdrop d-none" onclick="handleDeleteBackdropClick(event)">
+        <div class="modal-container modal-dialog-sm">
+            <div class="modal-header danger-header">
+                <div class="modal-title-area">
+                    <div class="modal-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div>
+                        <h3>Delete Document?</h3>
+                        <span class="modal-sub">Irreversible storage operation</span>
+                    </div>
+                </div>
+                <button class="btn-close-modal" onclick="closeDeleteModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="deleteTargetTitle">Document Title</strong> (<span id="deleteTargetId" class="doc-code">ID</span>)?</p>
+                <p class="modal-note"><i class="fa-solid fa-circle-info"></i> This will delete the binary PDF from local storage and erase its metadata record.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDeleteDocument()">
+                    <i class="fa-solid fa-trash-can"></i> Confirm Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

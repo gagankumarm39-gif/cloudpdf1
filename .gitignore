@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.class
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.venv/
+venv/
+ENV/
+.idea/
+.vscode/
+*.pdf
+storage/generated_pdfs/*.pdf
+.pytest_cache/
+

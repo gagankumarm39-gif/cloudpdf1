@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - CloudPDF Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-body">
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="brand-logo">
+                <div class="logo-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                <div class="brand-text">
+                    <span class="brand-title">CloudPDF</span>
+                    <span class="brand-tag">AWS Cloud Platform</span>
+                </div>
+            </a>
+            <div class="nav-actions">
+                <a href="{{ url_for('register') }}" class="btn btn-secondary btn-sm">
+                    <i class="fa-solid fa-user-plus"></i> Create Account
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="auth-main">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <h2>Welcome Back</h2>
+                <p>Sign in to access your secure cloud PDF documents</p>
+            </div>
+
+            <!-- Flash Error Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="auth-alert auth-alert-{{ category }}">
+                    <i class="fa-solid {% if category == 'success' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}"></i>
+                    <span>{{ message }}</span>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('login') }}" method="POST" class="auth-form" novalidate>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label for="email"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="e.g. kavya@cloudpdf.edu" required autofocus value="{{ email|default('') }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="password"><i class="fa-solid fa-lock"></i> Password</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <div class="form-group form-check-row">
+                    <label class="remember-label">
+                        <input type="checkbox" name="remember"> Remember this session
+                    </label>
+                    <a href="#" class="forgot-link" onclick="alert('Default demo account: kavya@cloudpdf.edu / Password123')">Need Demo Credentials?</a>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign In to Dashboard
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Don't have an account yet? <a href="{{ url_for('register') }}">Sign up here</a></p>
+                <div class="demo-credential-box">
+                    <strong><i class="fa-solid fa-key"></i> Pre-seeded Demo Credentials:</strong>
+                    <code>kavya@cloudpdf.edu</code> / <code>Password123</code>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="auth-page-footer">
+        <p>© 2026 Cloud-Based PDF Generation System • AWS Cloud Security Architecture</p>
+    </footer>
+</body>
+</html>

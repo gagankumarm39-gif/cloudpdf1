@@ -1,0 +1,26 @@
+[
+  {
+    "user_id": "USER-DEMO-001",
+    "name": "Kavya M",
+    "email": "kavya@cloudpdf.edu",
+    "password_hash": "$2b$12$.1tX1YT60CsDk6ZA4v8CoOJNV4gS6b.c3XhlbMbxP4VZ9owwzIrMC",
+    "created_at": "2026-11-15T06:33:19.987817Z",
+    "is_active": true
+  },
+  {
+    "user_id": "USER-0626E625",
+    "name": "Bob Cloud",
+    "email": "bob@cloud.com",
+    "password_hash": "$2b$12$jHjZaEsVW1QzyrUXFqR5wOYPMY3UkO5x5mgdJ1B.q.ZJsXRmXDSIG",
+    "created_at": "2026-11-15T06:34:29.422697Z",
+    "is_active": true
+  },
+  {
+    "user_id": "USER-71F3862F",
+    "name": "User A",
+    "email": "user_a@test.com",
+    "password_hash": "$2b$12$aiRSsNTcp7SCPqQFuWs8Auh8qLUypdjZfzdq4meuupAw9N3aqZie6",
+    "created_at": "2026-11-15T06:34:31.152292Z",
+    "is_active": true
+  }
+]
