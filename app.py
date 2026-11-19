@@ -57,12 +57,6 @@ login_manager.login_message_category = "error"
 
 # Instantiate services
 postgres_service = PostgresService()
-if postgres_service.is_configured():
-    try:
-        postgres_service.init_db()
-    except Exception as e:
-        app.logger.warning(f"PostgreSQL init_db failed on startup: {e}")
-
 supabase_storage_service = SupabaseStorageService()
 s3_service = S3Service()
 dynamodb_service = DynamoDBService()
@@ -70,6 +64,37 @@ storage_service = StorageService(supabase_service=supabase_storage_service, s3_s
 pdf_service = PDFGeneratorService()
 document_repo = DocumentRepository(dynamodb_service=dynamodb_service, postgres_service=postgres_service)
 auth_service = AuthService(postgres_service=postgres_service)
+
+# Safe on-demand database initialization flag
+_db_initialized = False
+
+def ensure_database_initialized():
+    """
+    Safely and lazily initializes database tables on first use or health check,
+    ensuring that Gunicorn and Flask import/bind cleanly without blocking startup.
+    """
+    global _db_initialized
+    if not _db_initialized and postgres_service.is_configured():
+        try:
+            res = postgres_service.init_db()
+            if res.get("success"):
+                _db_initialized = True
+                app.logger.info("PostgreSQL schema tables verified successfully.")
+            else:
+                app.logger.warning(f"PostgreSQL init_db deferred: {res.get('error', res.get('message'))}")
+        except Exception as e:
+            app.logger.warning(f"PostgreSQL connection deferred on request: {e}")
+
+@app.before_request
+def before_request_db_check():
+    """
+    Trigger lazy DB schema verification on incoming user requests without blocking app boot.
+    Exempt lightweight monitoring health-checks and static files to ensure immediate probe response.
+    """
+    if request.path.startswith("/api/health") or request.path.startswith("/static"):
+        return
+    if not _db_initialized and postgres_service.is_configured():
+        ensure_database_initialized()
 
 # Exempt REST API routes from CSRF token validation so JSON/fetch requests work seamlessly
 csrf.exempt("app.health_check")

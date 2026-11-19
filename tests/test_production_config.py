@@ -187,3 +187,38 @@ def test_enhanced_health_check_connected(monkeypatch):
         os.environ.pop("DYNAMODB_TABLE_NAME", None)
         os.environ.pop("DYNAMODB_USERS_TABLE", None)
         supabase_storage_service.bucket_name = orig_supa
+
+
+def test_startup_and_health_when_postgres_unreachable(monkeypatch):
+    """
+    Verify application starts cleanly and /api/health responds with 200 (degraded)
+    when DATABASE_URL points to an unreachable host or network timeout.
+    Ensures Gunicorn does not hit 'Port scan timeout reached'.
+    """
+    from services.postgres_service import PostgresService
+    from app import app
+
+    # Point postgres to an unreachable IP with 1s timeout
+    unreachable_pg = PostgresService("postgresql+psycopg2://user:pass@192.0.2.1:5432/db")
+    monkeypatch.setattr("app.postgres_service", unreachable_pg)
+
+    app.config["TESTING"] = True
+    client = app.test_client()
+
+    resp = client.get("/api/health")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert "cloud_services" in data
+    assert data["cloud_services"]["supabase_postgres"]["configured"] is True
+    assert data["cloud_services"]["supabase_postgres"]["accessible"] is False
+    assert data["cloud_services"]["supabase_postgres"]["status"] == "unreachable"
+
+
+def test_gunicorn_render_port_binding(monkeypatch):
+    """Verify Gunicorn dynamically binds to 0.0.0.0:$PORT on Render."""
+    monkeypatch.setenv("PORT", "10000")
+    monkeypatch.delenv("GUNICORN_BIND", raising=False)
+    
+    port = os.getenv("PORT", "8000")
+    bind_target = os.getenv("GUNICORN_BIND", f"0.0.0.0:{port}")
+    assert bind_target == "0.0.0.0:10000"

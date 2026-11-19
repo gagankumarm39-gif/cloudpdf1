@@ -120,9 +120,17 @@ Scroll down to the **Environment Variables** section and add the following keys:
    ```text
    /api/health
    ```
-3. Render will monitor this path during deployments to ensure the application starts successfully before routing traffic.
+3. Render monitors this path during deployments to ensure the application starts and binds successfully. The endpoint is non-blocking and responds with HTTP 200 even if cloud databases are momentarily connecting.
 
-### Step 4.5: Deploy and Access
+### Step 4.5: Troubleshooting "Port scan timeout reached"
+If Render logs report `Port scan timeout reached, no open ports detected`:
+1. **Cause**: A blocking remote network operation (such as database table creation on application import) or missing port binding prevented Gunicorn from opening the port within Render's scan window.
+2. **Resolution Applied in Codebase**:
+   - `gunicorn_config.py` binds dynamically to `0.0.0.0:$PORT`.
+   - `postgres_service.py` enforces a `connect_timeout=5` second limit and automatically prepends `postgresql+psycopg2://` driver prefix.
+   - `app.py` defers database schema verification lazily to user requests (`before_request`), ensuring immediate, unblocked web server port binding on startup.
+
+### Step 4.6: Deploy and Access
 1. Click **Create Web Service**.
 2. Render will clone the repository, run `pip install -r requirements.txt`, and launch Gunicorn.
 3. Once the build finishes, you will see a green checkmark and your live URL:

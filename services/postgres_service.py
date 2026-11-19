@@ -130,12 +130,16 @@ def normalize_database_url(url: str) -> str:
     Ensure SQLAlchemy uses the psycopg2 driver for postgresql URLs.
     Supabase connection strings often begin with 'postgres://' which
     SQLAlchemy 1.4+ requires to be 'postgresql://' or 'postgresql+psycopg2://'.
+    Explicitly use 'postgresql+psycopg2://' so that the installed psycopg2 driver
+    is consistently selected without requiring psycopg (v3).
     """
     if not url:
         return ""
     url = url.strip()
     if url.startswith("postgres://"):
-        url = "postgresql://" + url[len("postgres://"):]
+        url = "postgresql+psycopg2://" + url[len("postgres://"):]
+    elif url.startswith("postgresql://") and not url.startswith("postgresql+"):
+        url = "postgresql+psycopg2://" + url[len("postgresql://"):]
     return url
 
 
@@ -168,7 +172,8 @@ class PostgresService:
                 engine_kwargs.update({
                     "pool_size": 5,
                     "max_overflow": 10,
-                    "pool_recycle": 300
+                    "pool_recycle": 300,
+                    "connect_args": {"connect_timeout": 5}
                 })
             self._engine = create_engine(self.database_url, **engine_kwargs)
             self._session_factory = sessionmaker(bind=self._engine)
